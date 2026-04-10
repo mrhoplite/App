@@ -67,4 +67,3 @@ def search():
         return f"Error connecting to database: {str(e)}"
 
 if __name__ == '__main__':
-    app.run(debug=True)
