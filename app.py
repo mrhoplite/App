@@ -3,6 +3,7 @@ import requests
 
 app = Flask(__name__)
 
+app.debug = True
 # The secret keys we found in your screenshots
 AJAX_URL = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
 NONCE = "e6a25f43de" # Remember: update this if it expires!
