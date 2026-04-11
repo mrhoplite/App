@@ -19,11 +19,11 @@ def index():
         <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
             .container { background-color: #1a1a1a; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; border: 1px solid #333; }
-            h2 { color: #4dabf7; margin-bottom: 20px; }
+            h2 { color: #00ff00; margin-bottom: 20px; }
             input[type="text"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #444; border-radius: 6px; background-color: #252525; color: white; box-sizing: border-box; }
             button { width: 100%; padding: 12px; background-color: #228be6; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: background 0.3s; }
             button:hover { background-color: #1c7ed6; }
-            .result { margin-top: 25px; text-align: left; background: #252525; padding: 15px; border-radius: 8px; border-left: 4px solid #4dabf7; }
+            .result { margin-top: 25px; text-align: left; background: #252525; padding: 15px; border-radius: 8px; border-left: 4px solid #00ff00; }
         </style>
     </head>
     <body>
