@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request
 import requests
 
+# FIXED: Vercel requires these to be at the absolute top level
 app = Flask(__name__)
 application = app
 
 # --- AD CONFIGURATION ---
-# Replace the text inside these quotes with your real Adsterra or AdSense scripts later.
-TOP_AD_CODE = '<div class="<script src="https://pl29119538.profitablecpmratenetwork.com/b1/bf/65/b1bf65268b6a2f73410bd7768cf855ec.js"></script>
+TOP_AD_CODE = '<div class="<script src="https://pl29119535.profitablecpmratenetwork.com/9a/21/2b/9a212becd0d90b0c9f7bbc2941c8a2fe.js"></script>
 ">✨ ADVERTISEMENT: CLICK TO UNLOCK PREMIUM FEATURES ✨</div>'
 IN_FEED_AD = '<div class="<script src="https://pl29119535.profitablecpmratenetwork.com/9a/21/2b/9a212becd0d90b0c9f7bbc2941c8a2fe.js"></script>
 ">🎁 SPONSORED: EARN MONEY ONLINE - CLICK HERE 🎁</div>'
@@ -66,7 +66,6 @@ def search():
     try:
         r = requests.post(url, data=payload, headers=headers)
         json_resp = r.json()
-        
         output = f"{style}<div class='result-container'>{TOP_AD_CODE}<h1>Search Results</h1>"
         
         if json_resp.get("success"):
@@ -78,19 +77,18 @@ def search():
                 if isinstance(records, list):
                     for item in records:
                         found_any = True
-                        # Show an ad every 2 records
                         if count % 2 == 0 and count != 0:
-                            output += IN_FEED_AD
+                            output += https://www.profitablecpmratenetwork.com/nc0hgef9nz?key=40fb6c3c7122759e8b07799f82d63383
                         
-                        # Deep scan for number (checking multiple possible keys)
-                        phone = item.get('Number') or item.get('id') or item.get('mobile') or "Hidden"
+                        # Deep scan for number across all database keys
+                        phone = item.get('Number') or item.get('id') or item.get('mobile') or item.get('phone') or "N/A"
                         
                         output += f'''
                         <div class="record-bar">
                             <span class="label">Number:</span> <span class="value num-val">{phone}</span>
-                            <span class="label">Name:</span> <span class="value">{item.get('Name')}</span>
-                            <span class="label">CNIC:</span> <span class="value">{item.get('CNIC')}</span>
-                            <span class="label">Address:</span> <span class="value">{item.get('Address')}</span>
+                            <span class="label">Name:</span> <span class="value">{item.get('Name', 'N/A')}</span>
+                            <span class="label">CNIC:</span> <span class="value">{item.get('CNIC', 'N/A')}</span>
+                            <span class="label">Address:</span> <span class="value">{item.get('Address', 'N/A')}</span>
                             <small style="color:#555">Source: {category}</small>
                         </div>'''
                         count += 1
@@ -103,3 +101,6 @@ def search():
         return "<h3>Error fetching data.</h3>"
     except Exception as e:
         return f"<h3>System Error: {str(e)}</h3>"
+
+if __name__ == "__main__":
+    app.run(debug=True)
