@@ -98,6 +98,8 @@ def search():
                         found_any = True
                         output += '<div class="record-bar">'
                         
+                        <script src="https://pl29119538.profitablecpmratenetwork.com/b1/bf/65/b1bf65268b6a2f73410bd7768cf855ec.js"></script>
+                        
                         # Show Number if it exists
                         if item.get('Number'):
                             output += f'<div><span class="label">Number:</span> <span class="value number-value">{item.get("Number")}</span></div>'
