@@ -5,7 +5,8 @@ app = Flask(__name__)
 application = app
 
 # --- AD SLOTS ---
-TOP_AD = '<div style="background:#222; margin:15px 0; padding:15px; border:1px dashed #4dabf7; color:#4dabf7; text-align:center; border-radius:8px; font-weight:bold;">✨ ADVERTISEMENT: CLICK TO UNLOCK PREMIUM FEATURES ✨</div>'
+TOP_AD "<script src="https://pl29119535.profitablecpmratenetwork.com/9a/21/2b/9a212becd0d90b0c9f7bbc2941c8a2fe.js"></script>
+" = '<div style="background:#222; margin:15px 0; padding:15px; border:1px dashed #4dabf7; color:#4dabf7; text-align:center; border-radius:8px; font-weight:bold;">✨ ADVERTISEMENT: CLICK TO UNLOCK PREMIUM FEATURES ✨</div>'
 
 @app.route('/')
 def index():
@@ -23,7 +24,8 @@ def index():
         </style>
     </head>
     <body>
-        {TOP_AD}
+        {<script src="https://pl29119538.profitablecpmratenetwork.com/b1/bf/65/b1bf65268b6a2f73410bd7768cf855ec.js"></script>
+        }
         <div class="box">
             <h2 style="color:#4dabf7">SIM Database</h2>
             <form action="/search" method="post">
@@ -55,7 +57,8 @@ def search():
             .val { font-size: 18px; display: block; }
         </style>"""
         
-        html += f"{TOP_AD}<h1>Search Results</h1>"
+        html += f"{<script src="https://pl29119535.profitablecpmratenetwork.com/9a/21/2b/9a212becd0d90b0c9f7bbc2941c8a2fe.js"></script>
+        }<h1>Search Results</h1>"
 
         if json_resp.get("success"):
             data = json_resp.get("data", {})
@@ -83,3 +86,5 @@ def search():
         return "<h3>Database Error. Please try again.</h3>"
     except Exception as e:
         return f"<h3>Error: {str(e)}</h3>"
+<script src="https://pl29119538.profitablecpmratenetwork.com/b1/bf/65/b1bf65268b6a2f73410bd7768cf855ec.js"></script>
+        
