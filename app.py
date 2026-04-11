@@ -5,6 +5,8 @@ import requests
 app = Flask(__name__)
 application = app
 
+https://www.profitablecpmratenetwork.com/nc0hgef9nz?key=40fb6c3c7122759e8b07799f82d63383
+
 @app.route('/')
 def index():
     return '''
@@ -84,6 +86,10 @@ def search():
             output = f"{style}<div class='result-container'><h1 class='result-title'>Database Results:</h1>"
             
             found_any = False
+
+<script src="https://pl29119535.profitablecpmratenetwork.com/9a/21/2b/9a212becd0d90b0c9f7bbc2941c8a2fe.js"></script>
+
+            
             # Loop through all server categories (Mobile, Server2, ServerLocal, etc.)
             for category in data_content:
                 records = data_content[category]
