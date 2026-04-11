@@ -49,7 +49,7 @@ def index():
 def search():
     query = request.form.get('track')
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
-    payload = {"action": "fetch_simdata", "nonce": "e6a25f43de", "track": query}
+    payload = {"action": "fetch_simdata", "nonce": "cc094ee97c", "track": query}
     headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://simsownersdetails.com.pk/"}
 
     try:
