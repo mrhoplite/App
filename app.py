@@ -6,31 +6,29 @@ application = app
 
 # --- AD SLOTS ---
 TOP_AD = '<div style="background:#222; margin:15px 0; padding:15px; border:1px dashed #4dabf7; color:#4dabf7; text-align:center; border-radius:8px; font-weight:bold;">✨ ADVERTISEMENT: CLICK TO UNLOCK PREMIUM FEATURES ✨</div>'
-FEED_AD = '<div style="background:#1a1a1a; padding:15px; margin:20px 0; border:2px solid #2ecc71; color:#2ecc71; text-align:center; border-radius:10px; font-weight:bold;">🎁 SPONSORED: EARN MONEY ONLINE - CLICK HERE 🎁</div>'
 
 @app.route('/')
 def index():
     return f'''
     <!DOCTYPE html>
-    <html lang="en">
+    <html>
     <head>
-        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>SIM Details Finder</title>
+        <title>SIM Finder</title>
         <style>
-            body {{ font-family: 'Segoe UI', sans-serif; background-color: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; flex-direction: column; }}
-            .container {{ background-color: #1a1a1a; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }}
-            input[type="text"] {{ width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #444; border-radius: 6px; background-color: #252525; color: white; box-sizing: border-box; }}
-            button {{ width: 100%; padding: 12px; background-color: #228be6; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }}
+            body {{ font-family: sans-serif; background: #0f0f0f; color: #eee; padding: 20px; text-align: center; }}
+            .box {{ background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #333; max-width: 400px; margin: auto; }}
+            input {{ width: 90%; padding: 10px; margin: 10px 0; background: #222; color: #fff; border: 1px solid #444; }}
+            button {{ width: 95%; padding: 10px; background: #228be6; color: #fff; border: none; font-weight: bold; cursor: pointer; }}
         </style>
     </head>
     <body>
         {TOP_AD}
-        <div class="container">
-            <h2 style="color:#4dabf7;">SIM Info Finder</h2>
+        <div class="box">
+            <h2 style="color:#4dabf7">SIM Database</h2>
             <form action="/search" method="post">
-                <input type="text" name="track" placeholder="Enter Number or CNIC" required>
-                <button type="submit">Search Database</button>
+                <input type="text" name="track" placeholder="Enter CNIC or Number" required>
+                <button type="submit">SEARCH NOW</button>
             </form>
         </div>
     </body>
@@ -41,70 +39,47 @@ def index():
 def search():
     query = request.form.get('track')
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
-    
-    payload = {
-        "action": "fetch_simdata",
-        "nonce": "e6a25f43de",
-        "track": query
-    }
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Referer": "https://simsownersdetails.com.pk/"
-    }
-
-    style = """
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0f0f0f; color: #ffffff; padding: 20px; }
-        .res-container { max-width: 600px; margin: 0 auto; }
-        .record-bar { background: #1a1a1a; padding: 20px; margin-bottom: 15px; border-radius: 10px; border-left: 6px solid #2ecc71; border: 1px solid #333; }
-        .label { color: #4dabf7; font-weight: bold; font-size: 14px; text-transform: uppercase; }
-        .value { font-size: 18px; font-weight: bold; color: #ffffff; display: block; margin-bottom: 5px; }
-        .num-val { color: #2ecc71; font-size: 26px; margin-bottom: 10px; }
-    </style>
-    """
+    payload = {"action": "fetch_simdata", "nonce": "e6a25f43de", "track": query}
+    headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://simsownersdetails.com.pk/"}
 
     try:
         r = requests.post(url, data=payload, headers=headers)
         json_resp = r.json()
-        output = f"{style}<div class='res-container'>{TOP_AD}<h1>Search Results</h1>"
         
+        # Start the results page
+        html = """<style>
+            body { background: #0f0f0f; color: #fff; font-family: sans-serif; padding: 15px; }
+            .card { background: #1a1a1a; border-left: 5px solid #2ecc71; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+            .row { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+            .key { color: #4dabf7; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+            .val { font-size: 18px; display: block; }
+        </style>"""
+        
+        html += f"{TOP_AD}<h1>Search Results</h1>"
+
         if json_resp.get("success"):
-            data_content = json_resp.get("data", {})
-            count = 0
-            found_any = False
-            
-            # This loop scans ALL servers (Server 2, Server Local, etc.)
-            for category, records in data_content.items():
-                if isinstance(records, list) and len(records) > 0:
+            data = json_resp.get("data", {})
+            found = False
+
+            # This loops through every category (Mobile, Server 2, Server Local, etc.)
+            for category, records in data.items():
+                if isinstance(records, list):
                     for item in records:
-                        found_any = True
-                        if count % 2 == 0 and count != 0:
-                            output += FEED_AD
+                        found = True
+                        html += f'<div class="card"><div style="color:#666; font-size:10px;">Source: {category}</div>'
                         
-                        # THE CRITICAL FIX: 
-                        # In Server 2 and Server Local, the phone number is stored in 'id' or 'Number'
-                        # In the 'Mobile' source, these fields are often empty or missing.
-                        raw_number = item.get('id') or item.get('Number') or item.get('mobile') or item.get('phone')
+                        # THE RAW DUMPER: This shows EVERY field the server sends back
+                        for key, value in item.items():
+                            if value: # Only show if the field isn't empty
+                                html += f'<div class="row"><span class="key">{key}:</span> <span class="val">{value}</span></div>'
                         
-                        # If we still can't find it, we show the search query itself 
-                        # (Because if they searched a number, that IS the number for this record)
-                        display_num = raw_number if raw_number else "Result for: " + query
-                        
-                        output += f'''
-                        <div class="record-bar">
-                            <span class="label">Number:</span> <span class="value num-val">{display_num}</span>
-                            <span class="label">Name:</span> <span class="value">{item.get('Name', 'N/A')}</span>
-                            <span class="label">CNIC:</span> <span class="value">{item.get('CNIC', 'N/A')}</span>
-                            <span class="label">Address:</span> <span class="value">{item.get('Address', 'N/A')}</span>
-                            <div style="font-size:10px; color:#666; text-align:right;">Source: {category}</div>
-                        </div>'''
-                        count += 1
+                        html += "</div>"
+
+            if not found:
+                return "<h3>No data found for this query.</h3>"
             
-            if not found_any:
-                return f"{style}<h2>No data found.</h2><a href='/'>Back</a>"
-            
-            return output + f"<br><a href='/' style='color:#4dabf7;'>← Search Again</a></div>"
-        return "<h3>Error: API rejected request.</h3>"
+            return html + "<br><a href='/' style='color:#4dabf7'>New Search</a>"
+        
+        return "<h3>Database Error. Please try again.</h3>"
     except Exception as e:
         return f"<h3>Error: {str(e)}</h3>"
