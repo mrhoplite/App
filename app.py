@@ -19,11 +19,10 @@ def index():
         <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f0f0f; color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
             .container { background-color: #1a1a1a; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; border: 1px solid #333; }
-            h2 { color: #00ff00; margin-bottom: 20px; }
+            h2 { color: #4dabf7; margin-bottom: 20px; }
             input[type="text"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #444; border-radius: 6px; background-color: #252525; color: white; box-sizing: border-box; }
             button { width: 100%; padding: 12px; background-color: #228be6; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: background 0.3s; }
             button:hover { background-color: #1c7ed6; }
-            .result { margin-top: 25px; text-align: left; background: #252525; padding: 15px; border-radius: 8px; border-left: 4px solid #00ff00; }
         </style>
     </head>
     <body>
@@ -42,7 +41,6 @@ def index():
 def search():
     query = request.form.get('track')
     
-    # Using the exact keys from your successful manual search
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
     payload = {
         "action": "fetch_simdata",
@@ -54,6 +52,26 @@ def search():
         "Referer": "https://simsownersdetails.com.pk/"
     }
 
+    # CSS to make results large, white, and visible
+    style = """
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0f0f0f; color: #ffffff; padding: 20px; font-size: 20px; }
+        .result-title { color: #4dabf7; font-size: 30px; margin-bottom: 20px; font-weight: bold; }
+        .record-bar { 
+            background: #1a1a1a; 
+            padding: 25px; 
+            margin-bottom: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #444; 
+            color: #ffffff; 
+            line-height: 1.8;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .label { color: #4dabf7; font-weight: bold; }
+        .back-link { color: #4dabf7; text-decoration: none; font-size: 20px; font-weight: bold; display: inline-block; margin-top: 20px; }
+    </style>
+    """
+
     try:
         r = requests.post(url, data=payload, headers=headers)
         data = r.json()
@@ -61,18 +79,18 @@ def search():
         if data.get("success"):
             records = data.get("data", {}).get("Mobile", [])
             if not records:
-                return "<h3>No records found.</h3><a href='/'>Back</a>"
+                return f"{style}<h2 class='result-title'>No records found.</h2><a href='/' class='back-link'>← Back</a>"
             
-            output = "<h2>Results:</h2>"
+            output = f"{style}<h2 class='result-title'>Results:</h2>"
             for item in records:
                 output += f'''
-                <div style="background:#252525; padding:10px; margin-bottom:10px; border-radius:5px;">
-                    <b>Name:</b> {item.get('Name')}<br>
-                    <b>CNIC:</b> {item.get('CNIC')}<br>
-                    <b>Address:</b> {item.get('Address')}
+                <div class="record-bar">
+                    <span class="label">Name:</span> {item.get('Name')}<br>
+                    <span class="label">CNIC:</span> {item.get('CNIC')}<br>
+                    <span class="label">Address:</span> {item.get('Address')}
                 </div>'''
-            return output + "<br><a href='/' style='color:#4dabf7;'>Search Again</a>"
+            return output + "<br><a href='/' class='back-link'>← Search Again</a>"
         else:
-            return "<h3>Error: Search failed or Nonce expired.</h3><a href='/'>Back</a>"
+            return f"{style}<h3 class='result-title'>Error: Search failed or Nonce expired.</h3><a href='/' class='back-link'>Back</a>"
     except Exception as e:
-        return f"<h3>Connection Error: {str(e)}</h3>"
+        return f"{style}<h3 class='result-title'>Connection Error: {str(e)}</h3>"
