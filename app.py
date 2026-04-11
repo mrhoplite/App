@@ -1,7 +1,6 @@
 from flask import Flask, request
 import requests
 
-# Vercel's required top-level handlers
 app = Flask(__name__)
 application = app
 
@@ -44,7 +43,6 @@ def search():
     query = request.form.get('track')
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
     
-    # We use a standard dictionary here to avoid brace-formatting errors
     payload = {
         "action": "fetch_simdata",
         "nonce": "e6a25f43de",
@@ -56,7 +54,6 @@ def search():
         "Referer": "https://simsownersdetails.com.pk/"
     }
 
-    # CSS for the results page
     style = """
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0f0f0f; color: #ffffff; padding: 20px; }
@@ -64,32 +61,31 @@ def search():
         .record-bar { background: #1a1a1a; padding: 20px; margin-bottom: 15px; border-radius: 10px; border-left: 6px solid #4dabf7; border: 1px solid #333; }
         .label { color: #4dabf7; font-weight: bold; font-size: 14px; text-transform: uppercase; }
         .value { font-size: 20px; font-weight: bold; color: #ffffff; display: block; margin-bottom: 5px; }
-        .num-val { color: #2ecc71; font-size: 24px; }
+        .num-val { color: #2ecc71; font-size: 26px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
     </style>
     """
 
     try:
         r = requests.post(url, data=payload, headers=headers)
         json_resp = r.json()
-        
-        output = f"{style}<div class='res-container'>{TOP_AD}<h1>Search Results</h1>"
+        output = f"{style}<div class='res-container'>{TOP_AD}<h1>Results</h1>"
         
         if json_resp.get("success"):
             data_content = json_resp.get("data", {})
             count = 0
             found = False
             
-            # Loop through all categories (Mobile, Server2, ServerLocal, etc.)
+            # Loop through ALL keys: Mobile, Server2, ServerLocal, etc.
             for cat, records in data_content.items():
                 if isinstance(records, list):
                     for item in records:
                         found = True
-                        # Insert AD every 2nd record
                         if count % 2 == 0 and count != 0:
                             output += FEED_AD
                         
-                        # Fix for missing numbers: Check every possible field name
-                        p = item.get('Number') or item.get('id') or item.get('mobile') or item.get('phone') or "N/A"
+                        # The "Deep Search" for the number
+                        # We prioritize 'Number' and 'id' as these are the main keys used for phone numbers
+                        p = item.get('Number') or item.get('id') or item.get('mobile') or item.get('phone') or "Number Not Found"
                         
                         output += f'''
                         <div class="record-bar">
@@ -97,18 +93,17 @@ def search():
                             <span class="label">Name:</span> <span class="value">{item.get('Name', 'N/A')}</span>
                             <span class="label">CNIC:</span> <span class="value">{item.get('CNIC', 'N/A')}</span>
                             <span class="label">Address:</span> <span class="value">{item.get('Address', 'N/A')}</span>
-                            <small style="color:#555">Source: {cat}</small>
+                            <div style="font-size:10px; color:#444; text-align:right;">Source: {cat}</div>
                         </div>'''
                         count += 1
             
             if not found:
-                return f"{style}<div class='res-container'><h2>No Records Found</h2><a href='/'>Back</a></div>"
+                return f"{style}<h2>No data available for this query.</h2><a href='/'>Back</a>"
             
-            return output + f"<br><a href='/' style='color:#4dabf7; font-weight:bold;'>← Search Again</a></div>"
+            return output + f"<br><a href='/' style='color:#4dabf7;'>← Search Again</a></div>"
         
-        return "<h3>Error: Database rejected the search.</h3>"
+        return "<h3>Error: Database response failed.</h3>"
     except Exception as e:
-        # This will tell us EXACTLY what went wrong if it fails again
         return f"<h3>System Error: {str(e)}</h3>"
 
 if __name__ == "__main__":
