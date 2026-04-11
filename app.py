@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 application = app
 
-# --- AD CONFIGURATION ---
+# --- AD SLOTS ---
 TOP_AD = '<div style="background:#222; margin:15px 0; padding:15px; border:1px dashed #4dabf7; color:#4dabf7; text-align:center; border-radius:8px; font-weight:bold;">✨ ADVERTISEMENT: CLICK TO UNLOCK PREMIUM FEATURES ✨</div>'
 FEED_AD = '<div style="background:#1a1a1a; padding:15px; margin:20px 0; border:2px solid #2ecc71; color:#2ecc71; text-align:center; border-radius:10px; font-weight:bold;">🎁 SPONSORED: EARN MONEY ONLINE - CLICK HERE 🎁</div>'
 
@@ -60,7 +60,7 @@ def search():
         .record-bar { background: #1a1a1a; padding: 20px; margin-bottom: 15px; border-radius: 10px; border-left: 6px solid #2ecc71; border: 1px solid #333; }
         .label { color: #4dabf7; font-weight: bold; font-size: 14px; text-transform: uppercase; }
         .value { font-size: 18px; font-weight: bold; color: #ffffff; display: block; margin-bottom: 5px; }
-        .num-val { color: #2ecc71; font-size: 24px; margin-bottom: 10px; }
+        .num-val { color: #2ecc71; font-size: 26px; margin-bottom: 10px; }
     </style>
     """
 
@@ -82,17 +82,22 @@ def search():
                         if count % 2 == 0 and count != 0:
                             output += FEED_AD
                         
-                        # CRITICAL FIX: The other sites use 'id' or 'Number' 
-                        # This code now checks every possible field to find the digits
-                        p = item.get('Number') or item.get('id') or item.get('phone') or item.get('mobile') or "Check Other Source"
+                        # THE CRITICAL FIX: 
+                        # In Server 2 and Server Local, the phone number is stored in 'id' or 'Number'
+                        # In the 'Mobile' source, these fields are often empty or missing.
+                        raw_number = item.get('id') or item.get('Number') or item.get('mobile') or item.get('phone')
+                        
+                        # If we still can't find it, we show the search query itself 
+                        # (Because if they searched a number, that IS the number for this record)
+                        display_num = raw_number if raw_number else "Result for: " + query
                         
                         output += f'''
                         <div class="record-bar">
-                            <span class="label">Number:</span> <span class="value num-val">{p}</span>
+                            <span class="label">Number:</span> <span class="value num-val">{display_num}</span>
                             <span class="label">Name:</span> <span class="value">{item.get('Name', 'N/A')}</span>
                             <span class="label">CNIC:</span> <span class="value">{item.get('CNIC', 'N/A')}</span>
                             <span class="label">Address:</span> <span class="value">{item.get('Address', 'N/A')}</span>
-                            <div style="font-size:10px; color:#666; text-align:right;">Database: {category}</div>
+                            <div style="font-size:10px; color:#666; text-align:right;">Source: {category}</div>
                         </div>'''
                         count += 1
             
