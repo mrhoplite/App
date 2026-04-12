@@ -23,35 +23,32 @@ CSS = '''<style>
 
 @app.route('/')
 def index():
-    return f'''<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SIM Owner Details 2026</title>{CSS}{POP_UNDER}</head>
-    <body>{BANNER_AD}<div class="box"><h1 style="color:#4dabf7">SIM Owner Details</h1><form action="/search" method="post"><input type="text" name="track" placeholder="Enter Number" required><button type="submit">SEARCH NOW</button></form>
-    <a href="{SMART_LINK}" target="_blank" style="color:#fcc419;display:block;margin-top:15px;text-decoration:none;">✨ PREMIUM SERVER ACCESS ✨</a></div>{SOCIAL_BAR}</body></html>'''
+    return f'''<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SIM Data Finder</title>{CSS}{POP_UNDER}</head>
+    <body>{BANNER_AD}<div class="box"><h1 style="color:#4dabf7">SIM Owner Details</h1><form action="/search" method="post"><input type="text" name="track" placeholder="Enter Number" required><button type="submit">SEARCH NOW</button></form></div>{SOCIAL_BAR}</body></html>'''
 
 @app.route('/search', methods=['POST'])
 def search():
     query = request.form.get('track')
-    
-    # UPDATED URL AND NONCE FROM YOUR SNIPPET
+    # Using the specific "ajaz" URL you discovered
     url = "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php"
     payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
     
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
         "Origin": "https://simsownersdetails.net.pk",
         "Referer": "https://simsownersdetails.net.pk/",
         "X-Requested-With": "XMLHttpRequest",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+        "Accept": "*/*"
     }
 
     try:
-        r = requests.post(url, data=payload, headers=headers, timeout=12)
-        
-        # Build the response page
+        # We use a 15-second timeout to give the database time to respond
+        r = requests.post(url, data=payload, headers=headers, timeout=15)
         html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
         
         if r.status_code == 200:
             json_resp = r.json()
-            if isinstance(json_resp, dict) and json_resp.get("success"):
+            if json_resp.get("success"):
                 data = json_resp.get("data", {})
                 found = False
                 for cat, records in data.items():
@@ -63,14 +60,16 @@ def search():
                                 if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
                             html += '</div>'
                 if not found:
-                    html += f'<h3>No Data Found</h3><a href="{SMART_LINK}" class="smart-box">CHECK DATABASE 2</a>'
+                    html += '<h3>No results found in the current database.</h3>'
             else:
-                html += f'<h3>Key Expired</h3><p>Please click below to access the live database.</p><a href="{SMART_LINK}" class="smart-box">🚀 OPEN PREMIUM SERVER 🚀</a>'
+                # If the nonce is rejected, we show a helpful message instead of just a crash
+                html += '<h3>Security Key Expired</h3><p>Please update the Nonce to continue.</p>'
         else:
-            html += f'<h3>Server Busy</h3><p>Connecting to Cloud Server...</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATA ⚡</a>'
+            # If Vercel is blocked (Error 403/400), we show this
+            html += f'<h3>Database Error ({r.status_code})</h3><p>Access denied by the provider.</p>'
 
-        html += f'<center>{SOCIAL_BAR}</center><br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← Back</a>{BANNER_AD}</body></html>'
+        html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;">← New Search</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
         return html
 
-    except Exception:
-        return f'''{CSS}<body>{BANNER_AD}<h3>Update in Progress</h3><a href="{SMART_LINK}" class="smart-box">TRY BACKUP LINK</a><a href="/">← Back</a></body>'''
+    except Exception as e:
+        return f"<h3>Connection Failed: {str(e)}</h3><a href='/'>Go Back</a>"
