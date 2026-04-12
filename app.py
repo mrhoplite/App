@@ -29,47 +29,44 @@ def index():
 @app.route('/search', methods=['POST'])
 def search():
     query = request.form.get('track')
-    # Using the specific "ajaz" URL you discovered
-    url = "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php"
-    payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
     
+    # List of possible target URLs to try in order
+    targets = [
+        "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php",
+        "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
+    ]
+    
+    payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
     headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
-        "Origin": "https://simsownersdetails.net.pk",
-        "Referer": "https://simsownersdetails.net.pk/",
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept": "*/*"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "X-Requested-With": "XMLHttpRequest"
     }
 
-    try:
-        # We use a 15-second timeout to give the database time to respond
-        r = requests.post(url, data=payload, headers=headers, timeout=15)
-        html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
-        
-        if r.status_code == 200:
-            json_resp = r.json()
-            if json_resp.get("success"):
-                data = json_resp.get("data", {})
-                found = False
-                for cat, records in data.items():
-                    if isinstance(records, list):
-                        for item in records:
-                            found = True
-                            html += '<div class="card">'
-                            for k, v in item.items():
-                                if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
-                            html += '</div>'
-                if not found:
-                    html += '<h3>No results found in the current database.</h3>'
-            else:
-                # If the nonce is rejected, we show a helpful message instead of just a crash
-                html += '<h3>Security Key Expired</h3><p>Please update the Nonce to continue.</p>'
-        else:
-            # If Vercel is blocked (Error 403/400), we show this
-            html += f'<h3>Database Error ({r.status_code})</h3><p>Access denied by the provider.</p>'
+    html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
+    
+    found_data = False
+    for url in targets:
+        try:
+            r = requests.post(url, data=payload, headers=headers, timeout=8)
+            if r.status_code == 200:
+                json_resp = r.json()
+                if json_resp.get("success"):
+                    data = json_resp.get("data", {})
+                    for cat, records in data.items():
+                        if isinstance(records, list):
+                            for item in records:
+                                found_data = True
+                                html += '<div class="card">'
+                                for k, v in item.items():
+                                    if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
+                                html += '</div>'
+                    if found_data: break # Stop once we have data
+        except:
+            continue
 
-        html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;">← New Search</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
-        return html
+    if not found_data:
+        html += f'''<div class="box"><h3>Database Sync Error</h3><p>Server 1 and 2 are updating. Access the live cloud backup below:</p>
+        <a href="{SMART_LINK}" target="_blank" class="smart-box">🎁 OPEN LIVE DATABASE 🎁</a></div>'''
 
-    except Exception as e:
-        return f"<h3>Connection Failed: {str(e)}</h3><a href='/'>Go Back</a>"
+    html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← New Search</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
+    return html
