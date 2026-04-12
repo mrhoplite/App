@@ -1,5 +1,6 @@
 from flask import Flask, request
 import requests
+import random
 
 app = Flask(__name__)
 application = app
@@ -18,8 +19,13 @@ CSS = '''<style>
     .card { background: #1a1a1a; border-left: 5px solid #2ecc71; padding: 15px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #333; text-align: left; }
     .key { color: #4dabf7; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .val { font-size: 18px; display: block; color: #fff; }
-    .smart-box { background: #111; padding: 15px; border: 1px dashed #fcc419; color: #fcc419; text-align: center; border-radius: 8px; margin-bottom: 15px; text-decoration: none; display: block; font-weight: bold; }
 </style>'''
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36"
+]
 
 @app.route('/')
 def index():
@@ -29,44 +35,50 @@ def index():
 @app.route('/search', methods=['POST'])
 def search():
     query = request.form.get('track')
-    
-    # List of possible target URLs to try in order
-    targets = [
-        "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php",
-        "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
-    ]
-    
+    url = "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php"
     payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
+    
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "User-Agent": random.choice(USER_AGENTS),
+        "Origin": "https://simsownersdetails.net.pk",
+        "Referer": "https://simsownersdetails.net.pk/",
         "X-Requested-With": "XMLHttpRequest"
     }
 
-    html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
-    
-    found_data = False
-    for url in targets:
-        try:
-            r = requests.post(url, data=payload, headers=headers, timeout=8)
-            if r.status_code == 200:
+    try:
+        # Step 1: Get a fresh session cookie first
+        s = requests.Session()
+        s.get("https://simsownersdetails.net.pk/", timeout=5)
+        
+        # Step 2: Send the Search request
+        r = s.post(url, data=payload, headers=headers, timeout=15)
+        html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
+        
+        if r.status_code == 200:
+            try:
                 json_resp = r.json()
                 if json_resp.get("success"):
                     data = json_resp.get("data", {})
+                    found = False
                     for cat, records in data.items():
                         if isinstance(records, list):
                             for item in records:
-                                found_data = True
+                                found = True
                                 html += '<div class="card">'
                                 for k, v in item.items():
                                     if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
                                 html += '</div>'
-                    if found_data: break # Stop once we have data
-        except:
-            continue
+                    if found:
+                        html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;">← New Search</a>{SOCIAL_BAR}</body></html>'
+                        return html
+            except:
+                pass # Fail gracefully to error message below
 
-    if not found_data:
-        html += f'''<div class="box"><h3>Database Sync Error</h3><p>Server 1 and 2 are updating. Access the live cloud backup below:</p>
-        <a href="{SMART_LINK}" target="_blank" class="smart-box">🎁 OPEN LIVE DATABASE 🎁</a></div>'''
+        # If data isn't found or server blocks us, show the "Premium" option
+        html += f'''<div class="box"><h3>Data Link Encrypted</h3><p>Server 1 is busy. Please use Server 2 (High Speed) to view the name and address for {query}.</p>
+        <a href="{SMART_LINK}" target="_blank" style="background:#fcc419; color:#000; padding:15px; display:block; border-radius:6px; font-weight:bold; text-decoration:none;">🎁 OPEN PREMIUM SERVER 🎁</a></div>'''
+        html += f'<br><a href="/" style="color:#4dabf7;">← Back</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
+        return html
 
-    html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← New Search</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
-    return html
+    except Exception:
+        return f"<h3>Connection Error</h3><a href='/'>Try Again</a>"
