@@ -1,6 +1,4 @@
 from flask import Flask, request
-import requests
-import random
 
 app = Flask(__name__)
 application = app
@@ -14,71 +12,84 @@ BANNER_AD = '''<div style="margin:10px auto;text-align:center;"><script>atOption
 CSS = '''<style>
     body { background-color: #000; color: #fff; font-family: sans-serif; padding: 15px; text-align: center; }
     .box { background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #333; max-width: 450px; margin: auto; }
-    input { width: 90%; padding: 12px; margin: 10px 0; background: #252525; color: #fff; border: 1px solid #444; border-radius: 6px; }
+    input { width: 90%; padding: 12px; margin: 10px 0; background: #252525; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; }
     button { width: 95%; padding: 12px; background: #228be6; color: #fff; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
-    .card { background: #1a1a1a; border-left: 5px solid #2ecc71; padding: 15px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #333; text-align: left; }
+    #results { margin-top: 20px; text-align: left; max-width: 450px; margin-left: auto; margin-right: auto; }
+    .card { background: #1a1a1a; border-left: 5px solid #2ecc71; padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 5px; }
     .key { color: #4dabf7; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .val { font-size: 18px; display: block; color: #fff; }
+    .loading { color: #fcc419; font-weight: bold; }
 </style>'''
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36"
-]
 
 @app.route('/')
 def index():
-    return f'''<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>SIM Data Finder</title>{CSS}{POP_UNDER}</head>
-    <body>{BANNER_AD}<div class="box"><h1 style="color:#4dabf7">SIM Owner Details</h1><form action="/search" method="post"><input type="text" name="track" placeholder="Enter Number" required><button type="submit">SEARCH NOW</button></form></div>{SOCIAL_BAR}</body></html>'''
-
-@app.route('/search', methods=['POST'])
-def search():
-    query = request.form.get('track')
-    url = "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php"
-    payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
-    
-    headers = {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Origin": "https://simsownersdetails.net.pk",
-        "Referer": "https://simsownersdetails.net.pk/",
-        "X-Requested-With": "XMLHttpRequest"
-    }
-
-    try:
-        # Step 1: Get a fresh session cookie first
-        s = requests.Session()
-        s.get("https://simsownersdetails.net.pk/", timeout=5)
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>SIM Data Finder 2026</title>
+        {CSS}
+        {POP_UNDER}
+    </head>
+    <body>
+        {BANNER_AD}
+        <div class="box">
+            <h1 style="color:#4dabf7">SIM Owner Details</h1>
+            <input type="text" id="number" placeholder="Enter Number (03XXXXXXXXX)">
+            <button onclick="fetchData()">SEARCH NOW</button>
+            <div id="status"></div>
+        </div>
         
-        # Step 2: Send the Search request
-        r = s.post(url, data=payload, headers=headers, timeout=15)
-        html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
-        
-        if r.status_code == 200:
-            try:
-                json_resp = r.json()
-                if json_resp.get("success"):
-                    data = json_resp.get("data", {})
-                    found = False
-                    for cat, records in data.items():
-                        if isinstance(records, list):
-                            for item in records:
-                                found = True
-                                html += '<div class="card">'
-                                for k, v in item.items():
-                                    if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
-                                html += '</div>'
-                    if found:
-                        html += f'<br><a href="/" style="color:#4dabf7;font-weight:bold;">← New Search</a>{SOCIAL_BAR}</body></html>'
-                        return html
-            except:
-                pass # Fail gracefully to error message below
+        <div id="results"></div>
 
-        # If data isn't found or server blocks us, show the "Premium" option
-        html += f'''<div class="box"><h3>Data Link Encrypted</h3><p>Server 1 is busy. Please use Server 2 (High Speed) to view the name and address for {query}.</p>
-        <a href="{SMART_LINK}" target="_blank" style="background:#fcc419; color:#000; padding:15px; display:block; border-radius:6px; font-weight:bold; text-decoration:none;">🎁 OPEN PREMIUM SERVER 🎁</a></div>'''
-        html += f'<br><a href="/" style="color:#4dabf7;">← Back</a>{BANNER_AD}{SOCIAL_BAR}</body></html>'
-        return html
+        <script>
+        async function fetchData() {{
+            const num = document.getElementById('number').value;
+            const resDiv = document.getElementById('results');
+            const status = document.getElementById('status');
+            
+            if(!num) return alert("Enter number");
+            
+            resDiv.innerHTML = "";
+            status.innerHTML = "<p class='loading'>Connecting to Secure Database...</p>";
 
-    except Exception:
-        return f"<h3>Connection Error</h3><a href='/'>Try Again</a>"
+            const formData = new FormData();
+            formData.append('action', 'fetch_simdata');
+            formData.append('nonce', '4a0df85888');
+            formData.append('track', num);
+
+            try {{
+                const response = await fetch('https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php', {{
+                    method: 'POST',
+                    body: formData
+                }});
+
+                const json = await response.json();
+                status.innerHTML = "";
+
+                if(json.success) {{
+                    let html = "";
+                    for (const [key, val] of Object.entries(json.data)) {{
+                        val.forEach(item => {{
+                            html += '<div class="card">';
+                            for (const [k, v] of Object.entries(item)) {{
+                                if(v) html += `<div><span class="key">${{k}}:</span><span class="val">${{v}}</span></div>`;
+                            }}
+                            html += '</div>';
+                        }});
+                    }}
+                    resDiv.innerHTML = html || "<h3>No records found.</h3>";
+                }} else {{
+                    resDiv.innerHTML = "<h3>Security Error. Please try again.</h3>";
+                }}
+            }} catch (err) {{
+                status.innerHTML = "";
+                resDiv.innerHTML = `<h3>Server Blocked</h3><p>Direct access is limited. Use Premium Server:</p><a href="{SMART_LINK}" style="color:yellow;font-weight:bold;text-decoration:none;display:block;padding:15px;border:1px dashed yellow;">🎁 OPEN PREMIUM DATABASE 🎁</a>`;
+            }}
+        }}
+        </script>
+        {SOCIAL_BAR}
+    </body>
+    </html>
+    '''
