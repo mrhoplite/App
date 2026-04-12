@@ -30,61 +30,47 @@ def index():
 @app.route('/search', methods=['POST'])
 def search():
     query = request.form.get('track')
-    url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
     
-    # Use the nonce you provided
+    # UPDATED URL AND NONCE FROM YOUR SNIPPET
+    url = "https://simsownersdetails.net.pk/wp-admin/admin-ajaz.php"
     payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
     
-    # Advanced Headers to bypass "Error 400"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36",
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Origin": "https://simsownersdetails.net.pk",
+        "Referer": "https://simsownersdetails.net.pk/",
         "X-Requested-With": "XMLHttpRequest",
-        "Origin": "https://simsownersdetails.com.pk",
-        "Referer": "https://simsownersdetails.com.pk/",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "Priority": "u=1"
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
     }
 
     try:
-        # Using a session to manage cookies automatically
-        session = requests.Session()
-        # First, hit the home page to get a valid session cookie
-        session.get("https://simsownersdetails.com.pk/", timeout=5)
+        r = requests.post(url, data=payload, headers=headers, timeout=12)
         
-        # Now send the POST request
-        r = session.post(url, data=payload, headers=headers, timeout=10)
-        
-        if r.status_code != 200:
-            return f'''{CSS}<body>{BANNER_AD}<h3>Server Busy (Error {r.status_code})</h3><p>Direct access is limited. Use the high-speed link below.</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATABASE ⚡</a><a href="/">← Try Again</a>{SOCIAL_BAR}</body>'''
-
-        json_resp = r.json()
+        # Build the response page
         html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
         
-        if isinstance(json_resp, dict) and json_resp.get("success"):
-            data = json_resp.get("data", {})
-            found = False
-            for cat, records in data.items():
-                if isinstance(records, list):
-                    for item in records:
-                        found = True
-                        html += f'<div class="card">'
-                        for k, v in item.items():
-                            if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
-                        html += '</div>'
-            
-            if not found:
-                html += f'<h3>No Data Found</h3><a href="{SMART_LINK}" class="smart-box">CHECK SERVER 2</a>'
+        if r.status_code == 200:
+            json_resp = r.json()
+            if isinstance(json_resp, dict) and json_resp.get("success"):
+                data = json_resp.get("data", {})
+                found = False
+                for cat, records in data.items():
+                    if isinstance(records, list):
+                        for item in records:
+                            found = True
+                            html += '<div class="card">'
+                            for k, v in item.items():
+                                if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
+                            html += '</div>'
+                if not found:
+                    html += f'<h3>No Data Found</h3><a href="{SMART_LINK}" class="smart-box">CHECK DATABASE 2</a>'
+            else:
+                html += f'<h3>Key Expired</h3><p>Please click below to access the live database.</p><a href="{SMART_LINK}" class="smart-box">🚀 OPEN PREMIUM SERVER 🚀</a>'
         else:
-            # If nonce fails, the revenue doesn't stop
-            html += f'<h3>Database Connection Timeout</h3><p>The server is refreshing. Please use Backup Server 2.</p><a href="{SMART_LINK}" class="smart-box">🚀 CONNECT TO BACKUP SERVER 🚀</a>'
+            html += f'<h3>Server Busy</h3><p>Connecting to Cloud Server...</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATA ⚡</a>'
 
         html += f'<center>{SOCIAL_BAR}</center><br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← Back</a>{BANNER_AD}</body></html>'
         return html
 
     except Exception:
-        return f'''{CSS}<body>{BANNER_AD}<h3>System Update</h3><p>Connecting to mirror server...</p><a href="{SMART_LINK}" class="smart-box">TRY MIRROR LINK</a><a href="/">← Back</a></body>'''
+        return f'''{CSS}<body>{BANNER_AD}<h3>Update in Progress</h3><a href="{SMART_LINK}" class="smart-box">TRY BACKUP LINK</a><a href="/">← Back</a></body>'''
