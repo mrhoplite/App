@@ -31,24 +31,41 @@ def index():
 def search():
     query = request.form.get('track')
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
-    # Updated Nonce: 4a0df85888
+    
+    # Use the nonce you provided
     payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
+    
+    # Advanced Headers to bypass "Error 400"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Origin": "https://simsownersdetails.com.pk",
         "Referer": "https://simsownersdetails.com.pk/",
-        "X-Requested-With": "XMLHttpRequest"
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "Priority": "u=1"
     }
 
     try:
-        r = requests.post(url, data=payload, headers=headers, timeout=10)
+        # Using a session to manage cookies automatically
+        session = requests.Session()
+        # First, hit the home page to get a valid session cookie
+        session.get("https://simsownersdetails.com.pk/", timeout=5)
+        
+        # Now send the POST request
+        r = session.post(url, data=payload, headers=headers, timeout=10)
         
         if r.status_code != 200:
-            return f'''{CSS}<body>{BANNER_AD}<h3>Server Maintenance</h3><p>Direct database connection is currently limited.</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATABASE (FAST) ⚡</a><a href="/" style="color:#4dabf7">← Try Again</a>{SOCIAL_BAR}</body>'''
+            return f'''{CSS}<body>{BANNER_AD}<h3>Server Busy (Error {r.status_code})</h3><p>Direct access is limited. Use the high-speed link below.</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATABASE ⚡</a><a href="/">← Try Again</a>{SOCIAL_BAR}</body>'''
 
         json_resp = r.json()
         html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
         
-        if json_resp.get("success"):
+        if isinstance(json_resp, dict) and json_resp.get("success"):
             data = json_resp.get("data", {})
             found = False
             for cat, records in data.items():
@@ -61,13 +78,13 @@ def search():
                         html += '</div>'
             
             if not found:
-                html += f'<h3>No Data in Local Server</h3><a href="{SMART_LINK}" class="smart-box">CHECK GLOBAL DATABASE</a>'
+                html += f'<h3>No Data Found</h3><a href="{SMART_LINK}" class="smart-box">CHECK SERVER 2</a>'
         else:
-            # If nonce is invalid, we guide them to the ad link
-            html += f'<h3>Server Overloaded</h3><p>Please use our high-speed server below.</p><a href="{SMART_LINK}" class="smart-box">🚀 CONNECT TO PREMIUM SERVER 🚀</a>'
+            # If nonce fails, the revenue doesn't stop
+            html += f'<h3>Database Connection Timeout</h3><p>The server is refreshing. Please use Backup Server 2.</p><a href="{SMART_LINK}" class="smart-box">🚀 CONNECT TO BACKUP SERVER 🚀</a>'
 
         html += f'<center>{SOCIAL_BAR}</center><br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← Back</a>{BANNER_AD}</body></html>'
         return html
 
     except Exception:
-        return f'''{CSS}<body>{BANNER_AD}<h3>Request Timeout</h3><a href="{SMART_LINK}" class="smart-box">TRY ALTERNATE SERVER</a><a href="/">← Back</a></body>'''
+        return f'''{CSS}<body>{BANNER_AD}<h3>System Update</h3><p>Connecting to mirror server...</p><a href="{SMART_LINK}" class="smart-box">TRY MIRROR LINK</a><a href="/">← Back</a></body>'''
