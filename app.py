@@ -16,7 +16,6 @@ CSS = '''<style>
     input { width: 90%; padding: 12px; margin: 10px 0; background: #252525; color: #fff; border: 1px solid #444; border-radius: 6px; }
     button { width: 95%; padding: 12px; background: #228be6; color: #fff; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
     .card { background: #1a1a1a; border-left: 5px solid #2ecc71; padding: 15px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #333; text-align: left; }
-    .row { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
     .key { color: #4dabf7; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .val { font-size: 18px; display: block; color: #fff; }
     .smart-box { background: #111; padding: 15px; border: 1px dashed #fcc419; color: #fcc419; text-align: center; border-radius: 8px; margin-bottom: 15px; text-decoration: none; display: block; font-weight: bold; }
@@ -32,25 +31,22 @@ def index():
 def search():
     query = request.form.get('track')
     url = "https://simsownersdetails.com.pk/wp-admin/admin-ajax.php"
-    # IMPORTANT: Update this nonce value below frequently!
+    # Updated Nonce: 4a0df85888
     payload = {"action": "fetch_simdata", "nonce": "4a0df85888", "track": query}
-    headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://simsownersdetails.com.pk/"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Referer": "https://simsownersdetails.com.pk/",
+        "X-Requested-With": "XMLHttpRequest"
+    }
 
     try:
         r = requests.post(url, data=payload, headers=headers, timeout=10)
         
-        # This part prevents the 'int' attribute error
         if r.status_code != 200:
-            return f'''{CSS}<body>{BANNER_AD}<h3>Server Busy (Error {r.status_code})</h3><p>The database is currently updating. Please try again in 5 minutes.</p><a href="{SMART_LINK}" class="smart-box">USE BACKUP SERVER 2</a><a href="/">← Try Again</a></body>'''
+            return f'''{CSS}<body>{BANNER_AD}<h3>Server Maintenance</h3><p>Direct database connection is currently limited.</p><a href="{SMART_LINK}" class="smart-box">⚡ ACCESS CLOUD DATABASE (FAST) ⚡</a><a href="/" style="color:#4dabf7">← Try Again</a>{SOCIAL_BAR}</body>'''
 
         json_resp = r.json()
-        
-        # Safety check: if json_resp is not a dictionary, don't use .get()
-        if not isinstance(json_resp, dict):
-            return f'''{CSS}<body>{BANNER_AD}<h3>Update Required</h3><p>The search key (nonce) has expired.</p><a href="/">← Go Back</a></body>'''
-
         html = f'<html><head><meta name="viewport" content="width=device-width,initial-scale=1.0">{CSS}{POP_UNDER}</head><body>{BANNER_AD}'
-        html += f'<a href="{SMART_LINK}" target="_blank" class="smart-box">🎁 VIEW FULL ADDRESS (FREE) 🎁</a>'
         
         if json_resp.get("success"):
             data = json_resp.get("data", {})
@@ -59,18 +55,19 @@ def search():
                 if isinstance(records, list):
                     for item in records:
                         found = True
-                        html += f'<div class="card"><div style="color:#888;font-size:10px;">SOURCE: {cat}</div>'
+                        html += f'<div class="card">'
                         for k, v in item.items():
-                            if v: html += f'<div class="row"><span class="key">{k}:</span> <span class="val">{v}</span></div>'
+                            if v: html += f'<div><span class="key">{k}:</span> <span class="val">{v}</span></div>'
                         html += '</div>'
             
             if not found:
-                html += f'<h3>No Results Found.</h3><a href="{SMART_LINK}" class="smart-box">SEARCH IN PRIVATE DATABASE</a>'
+                html += f'<h3>No Data in Local Server</h3><a href="{SMART_LINK}" class="smart-box">CHECK GLOBAL DATABASE</a>'
         else:
-            html += f'<h3>Security Key Expired</h3><p>Please refresh the page and try again.</p>'
+            # If nonce is invalid, we guide them to the ad link
+            html += f'<h3>Server Overloaded</h3><p>Please use our high-speed server below.</p><a href="{SMART_LINK}" class="smart-box">🚀 CONNECT TO PREMIUM SERVER 🚀</a>'
 
-        html += f'<center>{SOCIAL_BAR}</center><br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← New Search</a>{BANNER_AD}</body></html>'
+        html += f'<center>{SOCIAL_BAR}</center><br><a href="/" style="color:#4dabf7;font-weight:bold;text-decoration:none;">← Back</a>{BANNER_AD}</body></html>'
         return html
 
-    except Exception as e:
-        return f'''{CSS}<body><h3>Connection Error</h3><p>Please check your internet or try again later.</p><a href="/">← Back</a></body>'''
+    except Exception:
+        return f'''{CSS}<body>{BANNER_AD}<h3>Request Timeout</h3><a href="{SMART_LINK}" class="smart-box">TRY ALTERNATE SERVER</a><a href="/">← Back</a></body>'''
